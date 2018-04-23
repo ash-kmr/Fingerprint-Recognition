@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import cv2
 
@@ -19,37 +20,48 @@ class Preprocess:
 		self.B = self.alpha + self.gamma*((self.A - self.mean)/self.stddev)
 
 	def binarization(self, q):
-		A = self.A.copy()
-		flat = A.copy().flatten()
-		hist = np.histogram(flat, bins = range(256))
+		B = self.B.copy()
+		flat = B.copy().flatten()
+		hist1 = np.histogram(flat, bins = range(256))
+		hist = hist1[0]
 		hist_percentile = np.percentile(hist, q)
 		hist_50 = np.percentile(hist, 50)
 
 		classified = self.classified.copy()
 
 		# 1 for ridge, 2 for valley
-		ridge = (self.A <= hist_percentile)
-		valley = (self.A >= hist_50)
+		ridge = (self.B <= hist_percentile).astype(int)
+		valley = (self.B >= hist_50).astype(int)
 		valley = valley*2
 
 		classified = ridge + valley
 
-		for i in range(A.shape[0]):
-			for j in range(A.shape[1]):
+		for i in range(B.shape[0]):
+			for j in range(B.shape[1]):
 				if classified[i,j] is 0:
 					T = classified[(i-2):(i+2), (j-2):(j+2)]
 					flat_T = T.copy().flatten()
-					hist_T = np.histogram(flat_T, bins = range(256))
+					hist_T1 = np.histogram(flat_T, bins = range(256))
+					hist_T = hist_T1[0]
 					hist_30 = np.percentile(hist_T, 30)
 
-					if A[i,j] >= hist_30:
+					if B[i,j] >= hist_30:
 						# valley
 						classified[i,j] = 2
 					else:
 						classified[i,j] = 1
 
 		# 1 matlab ridge and 0 matlab valley
-		self.classified = classified == 1  
+		self.classified = (classified == 1 ).astype(int) 
+		print(self.classified)
 
+# try:
+file_name = sys.argv[1]
+img = cv2.imread(file_name, 0)
+pre = Preprocess(img)
+pre.stretchDistribution()
+pre.binarization(25)
+cv2.imshow('image', pre.classified)
 
-
+# except:
+	# print("Error")
