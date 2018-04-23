@@ -21,17 +21,22 @@ class Preprocess:
 
 	def binarization(self, q):
 		B = self.B.copy()
+		B = B/255
 		flat = B.copy().flatten()
-		hist1 = np.histogram(flat, bins = range(256))
+		hist1 = np.histogram(flat, density=True)
 		hist = hist1[0]
 		hist_percentile = np.percentile(hist, q)
 		hist_50 = np.percentile(hist, 50)
 
 		classified = self.classified.copy()
 
+		print(hist_percentile)
+
 		# 1 for ridge, 2 for valley
 		ridge = (self.B <= hist_percentile).astype(int)
+		# print(hist)
 		valley = (self.B >= hist_50).astype(int)
+		# print(hist_50)
 		valley = valley*2
 
 		classified = ridge + valley
@@ -41,7 +46,8 @@ class Preprocess:
 				if classified[i,j] is 0:
 					T = classified[(i-2):(i+2), (j-2):(j+2)]
 					flat_T = T.copy().flatten()
-					hist_T1 = np.histogram(flat_T, bins = range(256))
+					flat_T = flat_T/(np.amax(flat_T))
+					hist_T1 = np.histogram(flat_T, density=True)
 					hist_T = hist_T1[0]
 					hist_30 = np.percentile(hist_T, 30)
 
@@ -52,16 +58,16 @@ class Preprocess:
 						classified[i,j] = 1
 
 		# 1 matlab ridge and 0 matlab valley
-		self.classified = (classified == 1 ).astype(int) 
-		print(self.classified)
+		self.classified = (classified == 2 ).astype(int) 
+		self.classified = self.classified*255
 
 # try:
 file_name = sys.argv[1]
 img = cv2.imread(file_name, 0)
 pre = Preprocess(img)
 pre.stretchDistribution()
-pre.binarization(25)
-cv2.imshow('image', pre.classified)
+pre.binarization(30)
+cv2.imwrite('image.jpg' ,pre.B)
 
 # except:
 	# print("Error")
