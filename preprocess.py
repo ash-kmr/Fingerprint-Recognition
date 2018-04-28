@@ -3,6 +3,10 @@ import numpy as np
 import cv2
 from zhangsuen import ZhangSuen
 import math
+import matplotlib.pyplot as plt
+
+
+from utils import estimateOrientations, showOrientations, showImage
 
 class Preprocess:
 	""" Class for preprocessing fingerprint for recognition """
@@ -21,46 +25,98 @@ class Preprocess:
 		for image enhancement """
 		self.B = self.alpha + self.gamma*((self.A - self.mean)/self.stddev)
 
-	def orientationField(self, w):
-		img = self.B.copy()
+	def showImage(self, image, label, vmin=0.0, vmax=1.0):
+		plt.figure().suptitle(label)
+		plt.imshow(image, cmap="gray", vmin=vmin, vmax=vmax)
+		# plt.show()
 
+	def showOrientations(self, image, orientations, label, w=32, vmin=0.0, vmax=1.0):
+		self.showImage(image, label)
+		height, width = image.shape
+		for y in range(0, height, w):
+			for x in range(0, width, w):
+				if np.any(orientations[y:y+w, x:x+w] == -1.0): continue
+
+				cy = (y + min(y + w, height)) // 2
+				cx = (x + min(x + w, width)) // 2
+
+				orientation = orientations[y+w//2, x+w//2]
+
+				plt.plot(
+						[cx - w * 0.5 * np.cos(orientation),
+							cx + w * 0.5 * np.cos(orientation)],
+						[cy - w * 0.5 * np.sin(orientation),
+							cy + w * 0.5 * np.sin(orientation)],
+						'r-', lw=1.0)
+
+		plt.show()
+
+	def averageOrientation(self, orientations):
+		"""
+		Calculate the average orientation in an orientation field.
+		"""
+
+		orientations = np.array(orientations).flatten()
+		o = orientations[0]
+
+		# If the difference in orientation is more than 90 degrees, accoridngly change the orientation
+		aligned = np.where(np.absolute(orientations - o) > np.pi/2,
+				np.where(orientations > o, orientations - np.pi, orientations + np.pi),
+				orientations)
+
+		return np.average(aligned) % np.pi, np.std(aligned)
 		
 
-		r,c = img.shape
+	def getOrientations(self, image, w=16):
 
-		blocks = []
+		height, width = image.shape
 
-		for i in range(0, r, w):
-			for j in range(0,c,w):
-				block = img[i:(i+w), j:(j+w)]
-				blocks.append(block)
+		# Apply Guassian Filter to smooth the image
+		image = cv2.GaussianBlur(image,(3,3),0)
 
-		angles = []
-		for block in blocks:
-			gx = cv2.Sobel(block,cv2.CV_64F,1,0,ksize=3)
-			gy = cv2.Sobel(block,cv2.CV_64F,0,1,ksize=3)
+		# Compute the gradients gx and gy at each pixel
+		gx = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+		gy = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
 
-			# print(gx)
+		# Estimate the local orientation of each block
+		xblocks, yblocks = height // w, width // w
+		orien = np.empty((xblocks, yblocks))
+		for i in range(xblocks):
+			for j in range(yblocks):
+				denominator, numerator = 0, 0
+				for v in range(w):
+					for u in range(w):
+						numerator += 2 * gx[i*w+v, j*w+u] * gy[i*w+v, j*w+u]
+						denominator += gx[i*w+v, j*w+u] ** 2 - gy[i*w+v, j*w+u] ** 2
 
-			numerator = 0
-			denominator = 0
-			for i in range(w):
-				for j in range(w):
-					numerator = numerator + 2*gx[i,j]*gy[i,j]
-					denominator = denominator + (gx[i,j]*gx[i,j] - gy[i,j]*gy[i,j])
+				orien[i, j] = np.arctan2(numerator, denominator)/2
 
+		# Rotate the orientations by 90 degrees
+		orien = (orien + np.pi/2) % np.pi
 
+		# Smooth the orientation field
+		orientations = np.full(image.shape, -1.0)
+		o = np.empty(orien.shape)
 
-			angle = (math.atan(numerator/denominator))/2
+		# pad it with 0 since 5 by 5 filter
+		orien = np.pad(orien, 2, mode="edge")
 
-			if math.isnan(angle):
-				continue
-			else:
-				angles.append(angle)
+		for y in range(xblocks):
+			for x in range(yblocks):
+				surrounding = orien[y:y+5, x:x+5]
+				orientation, deviation = self.averageOrientation(surrounding)
+				if deviation > 0.5:
+					orientation = orien[y+2, x+2]
+				o[y, x] = orientation
+		orien = o
 
-		print(angles)
+		orientations = np.full(image.shape, -1.0)
+	
+		for y in range(xblocks):
+			for x in range(yblocks):
+				orientations[y*w:(y+1)*w, x*w:(x+1)*w] = orien[y, x]
 
-
+		return orientations
 
 
 	def binarization(self, q):
@@ -111,7 +167,12 @@ img = cv2.imread(file_name, 0)
 pre = Preprocess(img)
 pre.stretchDistribution()
 # pre.binarization(25)
-pre.orientationField(16)
+# o = (pre.orientationField(16))
+o =  pre.getOrientations(pre.B)
+print(o)
+# showImage(pre.B, "j")
+pre.showOrientations(pre.B, o, "i", 16)
+
 # cv2.imwrite('image.jpg' ,pre.classified)
 
 # zh = ZhangSuen(pre.classified)
