@@ -4,9 +4,12 @@ import cv2
 from zhangsuen import ZhangSuen
 import math
 import matplotlib.pyplot as plt
+import scipy.ndimage as ndimage
+import scipy.signal as signal
 
 
-from utils import estimateOrientations, showOrientations, showImage
+
+from utils import estimateOrientations, showOrientations, showImage, estimateFrequencies, rotateAndCrop
 
 class Preprocess:
 	""" Class for preprocessing fingerprint for recognition """
@@ -119,6 +122,90 @@ class Preprocess:
 		return orientations
 
 
+	def rotatedRectWithMaxArea(self,image, angle):
+		# https://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders/16778797#16778797
+
+		h, w = image.shape
+
+		width_is_longer = w >= h
+		side_long, side_short = (w, h) if width_is_longer else (h, w)
+
+		# since the solutions for angle, -angle and 180-angle are all the same,
+		# if suffices to look at the first quadrant and the absolute values of sin,cos:
+		sin_a, cos_a = abs(np.sin(angle)), abs(np.cos(angle))
+		if side_short <= 2.0 * sin_a * cos_a * side_long:
+			# half constrained case: two crop corners touch the longer side,
+			# the other two corners are on the mid-line parallel to the longer line
+			x = 0.5 * side_short
+			wr, hr = (x / sin_a, x / cos_a) if width_is_longer else (x / cos_a, x / sin_a)
+		else:
+			# fully constrained case: crop touches all 4 sides
+			cos_2a = cos_a * cos_a - sin_a * sin_a
+			wr, hr = (w * cos_a - h * sin_a) / cos_2a, (h * cos_a - w * sin_a) / cos_2a
+
+		image = ndimage.interpolation.rotate(image, np.degrees(angle), reshape=False)
+
+		hr, wr = int(hr), int(wr)
+		y, x = (h - hr) // 2, (w - wr) // 2
+
+		return image[y:y+hr, x:x+wr]
+
+	def averagePeak(self, peaks, x_signature):
+
+		pre = peaks[0]
+		avg = 0
+		for i in range(1,len(peaks)):
+			avg = avg + (peaks[i] - pre)
+			pre = peaks[i]
+
+		return avg/(len(peaks)-1)
+
+
+
+	def getFrequencies(self, image, orientations, w=16):
+
+		height, width = image.shape
+
+		xblocks, yblocks = height//w, width//w
+
+		F = np.empty((xblocks, yblocks))
+
+		for x in range(xblocks):
+			for y in range(yblocks):
+				orientation_window = orientations[(x*w+w)//2, (y*w+w)//2]
+				block = image[y*w:(y+1)*w, x*w:(x+1)*w]
+				# Rotate the block so its normal to the ridge
+				block = self.rotatedRectWithMaxArea(block, np.pi/2 + orientation_window) 
+
+				if block.size == 0:
+					F[x,y] = -1
+					continue
+
+				x_signature = np.zeros(w)
+
+				for k in range(w):
+					for d in range(w):
+						u = x*w + (d-w/2)*np.cos(orientation_window) + (k-w/2)*np.sin(orientation_window)
+						v = y*w + (d-w/2)*np.sin(orientation_window) + (w/2-k)*np.cos(orientation_window)
+						
+						x_signature[k] = x_signature[k] + image[int(u),int(v)]
+
+					x_signature[k] = x_signature[k]/w
+
+				
+				peaks = signal.find_peaks_cwt(x_signature, np.array([3]))
+				if len(peaks) < 2:
+					F[x, y] = -1
+				else:
+					f = self.averagePeak(peaks, x_signature)
+					F[x, y] = 1 / f
+
+
+		# frequencies = cv2.GaussianBlur(F,(3,3),0)
+		frequencies = F
+		return frequencies
+
+
 	def binarization(self, q):
 		B = self.B.copy()
 		B = B/255
@@ -161,7 +248,26 @@ class Preprocess:
 		self.classified = (classified == 1 ).astype(int) 
 		self.classified = self.classified
 
+	def applyGabor(self, image, orientations, frequencies ,w=16):
+
+		height, width = image.shape
+		xblocks, yblocks = height//w, width//w
+
+		for x in range(xblocks):
+			for y in range(yblocks):
+				angle = orientations[(x*w+w)//2, (y*w+w)//2]
+				lamda = 1/(frequencies[x, y])
+				stddev = np.std(image[x*w:(x+1)*w, y*w:(y+1)*w])
+				print(angle, lamda)
+				kernel = cv2.getGaborKernel((w,w), stddev , angle, lamda, 0, 0, ktype=cv2.CV_32F)
+				# image[x*w:(x+1)*w, y*w:(y+1)*w] = cv2.filter2D(image[x*w:(x+1)*w, y*w:(y+1)*w],cv2.CV_8UC1, kernel)
+
+		return image
+
+
 # try:
+
+
 file_name = sys.argv[1]
 img = cv2.imread(file_name, 0)
 pre = Preprocess(img)
@@ -169,11 +275,12 @@ pre.stretchDistribution()
 # pre.binarization(25)
 # o = (pre.orientationField(16))
 o =  pre.getOrientations(pre.B)
-print(o)
-# showImage(pre.B, "j")
-pre.showOrientations(pre.B, o, "i", 16)
 
-# cv2.imwrite('image.jpg' ,pre.classified)
+f = pre.getFrequencies(pre.B, o)
+
+a = pre.applyGabor(pre.B, o,f)
+
+cv2.imwrite('image.jpg' ,a)
 
 # zh = ZhangSuen(pre.classified)
 # cv2.imwrite('image-thin.jpg', zh.performThinning()*255)

@@ -382,7 +382,8 @@ def estimateFrequencies(image, orientations, w=16):
                 else:
                     F[y, x] = 1 / f
 
-    #showImage(rotations, "rotations")
+    # showImage(rotations, "rotations")
+    # plt.show()
 
     frequencies = np.full(image.shape, -1.0)
     F = np.pad(F, 1, mode="edge")
