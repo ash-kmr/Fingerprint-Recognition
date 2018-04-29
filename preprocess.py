@@ -6,10 +6,11 @@ import math
 import matplotlib.pyplot as plt
 import scipy.ndimage as ndimage
 import scipy.signal as signal
+import gabor
+import helper
 
 
-
-from utils import estimateOrientations, showOrientations, showImage, estimateFrequencies, rotateAndCrop
+from utils import *
 
 class Preprocess:
 	""" Class for preprocessing fingerprint for recognition """
@@ -26,7 +27,7 @@ class Preprocess:
 	def stretchDistribution(self):
 		""" function for streching the distribution of image
 		for image enhancement """
-		self.B = self.alpha + self.gamma*((self.A - self.mean)/self.stddev)
+		self.B = ((self.A - self.mean)/self.stddev)
 
 	def showImage(self, image, label, vmin=0.0, vmax=1.0):
 		plt.figure().suptitle(label)
@@ -260,7 +261,7 @@ class Preprocess:
 				stddev = np.std(image[x*w:(x+1)*w, y*w:(y+1)*w])
 				print(angle, lamda)
 				kernel = cv2.getGaborKernel((w,w), stddev , angle, lamda, 0, 0, ktype=cv2.CV_32F)
-				# image[x*w:(x+1)*w, y*w:(y+1)*w] = cv2.filter2D(image[x*w:(x+1)*w, y*w:(y+1)*w],cv2.CV_8UC1, kernel)
+				image[x*w:(x+1)*w, y*w:(y+1)*w] = cv2.filter2D(image[x*w:(x+1)*w, y*w:(y+1)*w],cv2.CV_8UC1, kernel)
 
 		return image
 
@@ -274,13 +275,26 @@ pre = Preprocess(img)
 pre.stretchDistribution()
 # pre.binarization(25)
 # o = (pre.orientationField(16))
-o =  pre.getOrientations(pre.B)
+print("Filtering")
+image = pre.B
+print("Normalizing")
+image = normalize(image)
 
-f = pre.getFrequencies(pre.B, o)
+print("Finding mask")
+mask = findMask(image)
 
-a = pre.applyGabor(pre.B, o,f)
+print("Applying local normalization")
+image = np.where(mask == 1.0, localNormalize(image), image)
+ 
+o = np.where(mask== 1.0, helper.getOrientations(image), -1.0 ) 
+showOrientations(image, o, 'i')
+f = np.where(mask == 1.0, helper.getFrequencies(image, o), -1.0)
 
-cv2.imwrite('image.jpg' ,a)
+image = gabor.gaborFilter(image, o, f)
+image = np.where(mask == 1.0, image, 1.0)
+image = np.where(mask == 1.0, binarize(image), 1.0)
+showImage(image, "binarized")
+plt.show()
 
 # zh = ZhangSuen(pre.classified)
 # cv2.imwrite('image-thin.jpg', zh.performThinning()*255)

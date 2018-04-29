@@ -165,7 +165,7 @@ def convolve(image, kernel, origin=None, shape=None, pad=True):
 
     return result
 
-def findMask(image, threshold=0.1, w=32):
+def findMask(image, threshold=0.1, w=16):
     """
     Create a mask image consisting of only 0's and 1's. The areas containing
     1's represent the areas that look interesting to us, meaning that they
