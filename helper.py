@@ -5,7 +5,6 @@ import scipy.signal as signal
 import cv2
 
 
-
 def standard_normalization(image):
 	""" 
 	Returns an image with 0 mean and 1 STD
@@ -17,30 +16,37 @@ def standard_normalization(image):
 	image = (image-mean)/std
 	return image
 
-def maskify(image, threshold=0.1, w=16):
-	"""
-	Converts the image into a mask of 0s and 1s.
-	From : An efficient Algorithm for fingerprint preprocessing and feature extraction, ICEBT 2010
-	"""
-
-	# Standard Normalize the image
-	image = standard_normalization(image)
-
-	# Segment the image
-	mask = np.empty(image.shape)
-	height, width = image.shape
-	for y in range(0, height, w):
-		for x in range(0, width, w):
-			block = image[y:y+w, x:x+w]
-			standardDeviation = np.std(block)
-			if standardDeviation < threshold:
-				mask[y:y+w, x:x+w] = 0.0
-			elif block.shape != (w, w):
-				mask[y:y+w, x:x+w] = 0.0
-			else:
-				mask[y:y+w, x:x+w] = 1.0
-
-	return mask
+def segment(im,w=16,thresh=0.1):
+    
+    rows,cols = im.shape;    
+    
+    im = standard_normalization(im);    # normalise to get zero mean and unit standard deviation
+    
+    
+    new_rows, new_cols = int(w*np.ceil(rows/w)), int(w*np.ceil(cols/w)) 
+    xblocks, yblocks = new_rows//w, new_cols//w
+    
+    padded_img = np.zeros((w*xblocks,w*yblocks+1));
+    stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
+    
+    padded_img[0:rows, 0:cols] = im;
+    
+    for x in range(xblocks):
+        for y in range(yblocks):
+            block = padded_img[x*w:(x+1)*w, y*w:(y+1)*w];
+            stddevim[x*w:(x+1)*w, y*w:(y+1)*w] = np.std(block)
+    
+    stddevim = stddevim[0:rows, 0:cols]
+                    
+    mask = stddevim > thresh;
+    
+    mean_val = np.mean(im[mask]);
+    
+    std_val = np.std(im[mask]);
+    
+    normim = (im - mean_val)/(std_val);
+    
+    return(normim,mask)
 
 def normalize(image):
 	"""
@@ -117,7 +123,7 @@ def getOrientations(image, w=16):
 	height, width = image.shape
 
 	# Apply Guassian Filter to smooth the image
-	image = cv2.GaussianBlur(image,(3,3),0)
+	image = cv2.GaussianBlur(image,(5,5),0)
 
 	# Compute the gradients gx and gy at each pixel
 	gx = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
@@ -156,9 +162,9 @@ def getOrientations(image, w=16):
 			sin_angles = np.mean(sin_angles)
 			orientation[x,y] = np.arctan2(sin_angles,cos_angles)/2
 
-	for y in range(xblocks):
-		for x in range(yblocks):
-			orientations[y*w:(y+1)*w, x*w:(x+1)*w] = orientation[y, x]
+	for x in range(xblocks):
+		for y in range(yblocks):
+			orientations[x*w:(x+1)*w, y*w:(y+1)*w] = orientation[x, y]
 
 	return orientations
 
@@ -192,6 +198,24 @@ def rotatedRectWithMaxArea(image, angle):
 	return image[y:y+hr, x:x+wr]
 
 
+def block_freq(block, angle):
+	"""
+	Frequency of a block
+	"""
+	proj = np.sum(block, axis=0)
+	proj = normalize(proj)
+	
+	peaks = signal.find_peaks_cwt(proj, np.array([3]))
+	freq = -1
+	if len(peaks) > 1:
+		f = (peaks[-1] - peaks[0])/(len(peaks)-1)
+		if f>=5 and f<=15:
+			freq = 1/f
+
+	return freq
+
+	
+
 def getFrequencies(image, orientations, w=16):
 	"""
 	Get the Freuencies
@@ -204,47 +228,40 @@ def getFrequencies(image, orientations, w=16):
 	:w, block size
 
 	"""
-
 	height, width = image.shape
 	xblocks, yblocks = height // w, width // w
 	F = np.empty((xblocks, yblocks))
 	for x in range(xblocks):
 		for y in range(yblocks):
 			orientation = orientations[x*w+w//2, y*w+w//2]
-
 			block = image[x*w:(x+1)*w, y*w:(y+1)*w]
-
-			# Window is normal to the block
-			window = rotatedRectWithMaxArea(block, np.pi/2 + orientation)
-			if window.size == 0:
-				F[x, y] = -1
-				continue
-
-				
-			columns = np.sum(window, (0,))
-			columns = normalize(columns)
-			peaks = signal.find_peaks_cwt(columns, np.array([3]))
-			if len(peaks) < 2:
-				F[x, y] = -1
-			else:
-				f = (peaks[-1] - peaks[0]) / (len(peaks) - 1)
-				if f < 5 or f > 15:
-					F[x, y] = -1
-				else:
-					F[x, y] = 1 / f
+			block = rotatedRectWithMaxArea(block, np.pi/2 + orientation)
+			F[x,y] = block_freq(block, orientation)
 
 	frequencies = np.full(image.shape, -1.0)
-	F = np.pad(F, 3, mode="edge")
+	F = np.pad(F, 1, mode="edge")
 	for x in range(xblocks):
 		for y in range(yblocks):
-			surrounding = F[x:x+7, y:y+7]
-			surrounding = surrounding[np.where(surrounding >= 0.0)]
+			surrounding = F[x:x+3, y:y+3]
+			surrounding = surrounding[np.where(surrounding > 0.0)]	
 			if surrounding.size == 0:
-				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = -1
-			else:
-				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = np.mean(surrounding)
-
+				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = 1
+			else:	
+				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = np.median(surrounding)
+			
 	return frequencies
+
+def binarize(image, w=16):
+    
+    image = np.copy(image)
+    height, width = image.shape
+    for y in range(0, height, w):
+        for x in range(0, width, w):
+            block = image[y:y+w, x:x+w]
+            threshold = np.average(block)
+            image[y:y+w, x:x+w] = np.where(block >= threshold, 1.0, 0.0)
+
+    return image
 
 
 

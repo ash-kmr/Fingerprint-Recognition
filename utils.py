@@ -361,7 +361,6 @@ def estimateFrequencies(image, orientations, w=16):
     for y in range(yblocks):
         for x in range(xblocks):
             orientation = orientations[y*w+w//2, x*w+w//2]
-
             block = image[y*w:(y+1)*w, x*w:(x+1)*w]
             block = rotateAndCrop(block, np.pi * 0.5 + orientation)
             if block.size == 0:
@@ -372,6 +371,7 @@ def estimateFrequencies(image, orientations, w=16):
 
             columns = np.sum(block, (0,))
             columns = normalize(columns)
+            # print(columns)
             peaks = signal.find_peaks_cwt(columns, np.array([3]))
             if len(peaks) < 2:
                 F[y, x] = -1
