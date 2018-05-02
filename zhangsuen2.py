@@ -47,4 +47,16 @@ class ZhangSuen:
 				break
 
 		return self.image*255
-
+	
+	def extractminutiae(self, image):
+		mask = np.zeros(image.shape)
+		for i in range(1, image.shape[0]-1):
+			for j in range(1, image.shape[1]-1):
+				p = [image[i-1, j-1], image[i-1, j], image[i, j-1], image[i+1, j], image[i+1, j+1], image[i, j+1], image[i-1, j+1], image[i+1, j-1]]
+				p = np.array(p)
+				#if(p.sum()>0) : print(p)
+				if image[i][j] == 1:
+					if p.sum() == 1 or p.sum() > 2:
+						print(p)
+						mask[i][j] = 1
+		return mask*255
