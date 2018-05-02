@@ -1,5 +1,8 @@
 import numpy as np
 import weave
+import cv2
+import copy
+from helper import segment
 
 class ZhangSuen:
 	def __init__(self, image):
@@ -38,6 +41,7 @@ class ZhangSuen:
 		weave.inline(thin, ["I", "iter", "M", "a", "b"])
 		return np.multiply(I,M)
 	def performThinning(self):
+		print(self.image.shape)
 		while True:
 			prev = self.image.copy()
 			self.image = self.step(1)
@@ -45,18 +49,36 @@ class ZhangSuen:
 			diff = np.absolute(self.image - prev).sum()
 			if diff == 0:
 				break
+		print(self.image.shape)
+		return self.image
 
-		return self.image*255
-	
 	def extractminutiae(self, image):
+		coords = []
 		mask = np.zeros(image.shape)
 		for i in range(1, image.shape[0]-1):
 			for j in range(1, image.shape[1]-1):
-				p = [image[i-1, j-1], image[i-1, j], image[i, j-1], image[i+1, j], image[i+1, j+1], image[i, j+1], image[i-1, j+1], image[i+1, j-1]]
-				p = np.array(p)
-				#if(p.sum()>0) : print(p)
+				p = [image[i,j+1],image[i-1,j+1],image[i-1,j],image[i-1,j-1],image[i,j-1],image[i+1,j-1],image[i+1,j],image[i+1,j+1],image[i,j+1]]
+				CN = 0
+				for k in range(len(p)-1):
+					CN += abs(p[k] - p[k+1])
+				CN = CN/2
+				#print(CN)
 				if image[i][j] == 1:
-					if p.sum() == 1 or p.sum() > 2:
-						print(p)
-						mask[i][j] = 1
-		return mask*255
+					if CN == 1 or CN == 3:
+						coords.append((i, j))
+						mask[i, j] = 1
+		return coords, mask
+
+	def remove_minutiae(self, coords, image):
+		print(image.shape)
+		image, segmentfilter = segment(image)
+		mask = np.zeros(image.shape)
+		finalcoords = []
+		for i, j in coords:
+			if i > 6 and i < image.shape[0] - 7 and j > 6 and j < image.shape[1] - 7:
+				block = segmentfilter[i-5:i+6, j-5:j+6]
+				print(block.sum())
+				if block.sum() == 121:
+					mask[i, j] = 1
+		cv2.imwrite("minwithmask.jpg", mask*255)
+		return mask	

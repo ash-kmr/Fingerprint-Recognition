@@ -38,4 +38,4 @@ class ZhangSuen:
 			if c1+c2 == 0:
 				break
 
-		return self.image*255
+		return self.image

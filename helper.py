@@ -19,17 +19,17 @@ def standard_normalization(image):
 def segment(im,w=16,thresh=0.1):
     
     rows,cols = im.shape;    
-    
+    print(im.shape)
     im = standard_normalization(im);    # normalise to get zero mean and unit standard deviation
     
-    
+    print(im.shape)
     new_rows, new_cols = int(w*np.ceil(rows/w)), int(w*np.ceil(cols/w)) 
     xblocks, yblocks = new_rows//w, new_cols//w
     
     padded_img = np.zeros((w*xblocks,w*yblocks+1));
     stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
-    
-    padded_img[0:rows, 0:cols] = im;
+    print(cols)
+    padded_img = im;
     
     for x in range(xblocks):
         for y in range(yblocks):
