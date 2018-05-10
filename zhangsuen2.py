@@ -79,6 +79,21 @@ class ZhangSuen:
 				block = segmentfilter[i-5:i+6, j-5:j+6]
 				print(block.sum())
 				if block.sum() == 121:
-					mask[i, j] = 1
+					#mask[i, j] = 1
+					finalcoords.append((i, j))
+
+		fincoords = []
+		for i, j in finalcoords:
+			count = 0
+			for x, y in finalcoords:
+				if x != i or y != j:
+					if x < i+6 and x > i-6:
+						if y < j+6 and y > j-6:
+							count = 1
+							break
+			if count == 1: continue
+			fincoords.append((i, j))
+			mask[i, j] = 1
+
 		cv2.imwrite("minwithmask.jpg", mask*255)
 		return mask	
