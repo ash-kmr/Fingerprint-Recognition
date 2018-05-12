@@ -1,10 +1,14 @@
 import numpy as np
+from numba import jit, jitclass
+
 
 class ZhangSuen:
+
 	def __init__(self, image):
 		self.image = image
 		self.r, self.c = image.shape
 	
+
 	def step(self, iteration):
 		image, mask = self.image, np.ones(self.image.shape, np.uint8)
 		a, b = mask.shape
@@ -29,6 +33,7 @@ class ZhangSuen:
 					mask[i, j] = 0
 					counter += 1
 		return np.multiply(self.image, mask), counter
+
 
 	def performThinning(self):
 		while True:

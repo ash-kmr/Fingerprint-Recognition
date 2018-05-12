@@ -3,6 +3,7 @@ import weave
 import cv2
 import copy
 from helper import segment
+from rotation import correctrotation, rotate
 
 class ZhangSuen:
 	def __init__(self, image):
@@ -96,4 +97,17 @@ class ZhangSuen:
 			mask[i, j] = 1
 
 		cv2.imwrite("minwithmask.jpg", mask*255)
-		return mask	
+		return fincoords
+
+	def rotate_minutiae(self, coords, image):
+		mask = np.zeros(image.shape)
+		rows, cols = image.shape
+		angle, r, c = correctrotation(image)
+		angle = angle*np.pi/180
+		rotatedcoords = []
+		for point in coords:
+			rotatedcoords.append(rotate([r/2, c/2], point, angle))
+		print rotatedcoords
+		for point in rotatedcoords:
+			mask[int(round(point[0])), int(round(point[1]))] = 1
+		return rotatedcoords, angle, mask
