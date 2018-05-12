@@ -4,8 +4,8 @@ import numpy as np
 image = cv2.imread("enh.jpg", 0)
 for i in range(image.shape[0]):
 	for j in range(image.shape[1]):
-		if image[i][j] > 50: image[i][j] =1
-		else: image[i][j] = 0
+		if image[i][j] > 50: image[i][j] =0
+		else: image[i][j] = 1
 print("done")
 #cv2.imwrite("intermediate.jpg", image*255)
 z = ZhangSuen(image)
