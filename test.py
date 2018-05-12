@@ -7,6 +7,7 @@ for i in range(image.shape[0]):
 		if image[i][j] > 50: image[i][j] = 1
 		else: image[i][j] = 0
 print("done")
+cop = image.copy()
 #cv2.imwrite("intermediate.jpg", image*255)
 z = ZhangSuen(image)
 img = z.performThinning()
@@ -18,4 +19,4 @@ cv2.imwrite("minu.jpg", mask*255 )
 fincoords = z.remove_minutiae(coords, cv2.imread("102_2.jpg", 0))
 rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("102_2.jpg", 0))
 cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
-z.myfunction(rotatecoords, thinned)
+z.myfunction(fincoords, image)

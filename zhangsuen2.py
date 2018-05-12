@@ -120,7 +120,8 @@ class ZhangSuen:
 		return rotatedcoords, angle, mask
 
 	def myfunction(self, rcoords, image):
-		coords = np.array([[i, j] for i, j, k in rcoords])
+		mask = np.zeros(image.shape)
+		coords = np.array([[int(i), int(j)] for i, j, k in rcoords])
 		nbrs = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(coords)
 		distances, indices = nbrs.kneighbors(coords)
 		ridgecount = []
@@ -128,6 +129,19 @@ class ZhangSuen:
 			p1, p2 = np.array(coords[indices[i][1]]), np.array(coords[indices[i][2]])
 			r = np.array(coords[i])
 			iter1 = createLineIterator(r, p1, image)
-			print(iter1)
+			iter2 = createLineIterator(r, p2, image)
+			mask[coords[i][0], coords[i][1]] = 1
+			"""
+			for x, y, k in iter1:
+				mask[int(x), int(y)] = 1
+			for x, y, k in iter2:
+				mask[int(x), int(y)] = 1"""
+			###### format :      [[[x1, x2], rcount, [x3, x4], rcount]]
+			l1 = [image[int(x), int(y)] for x, y, z, in iter1]
+			l2 = [image[int(x), int(y)] for x, y, z, in iter2]
+			l1dash = [l1[i]-l1[i+1] for i in range(len(l1)-1)]
+			print(l1)
+			print(l1dash)
+			cv2.imwrite("thinnedimage0.jpg", mask*255)
 			break
 
