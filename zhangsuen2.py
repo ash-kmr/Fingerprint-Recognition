@@ -136,12 +136,58 @@ class ZhangSuen:
 				mask[int(x), int(y)] = 1
 			for x, y, k in iter2:
 				mask[int(x), int(y)] = 1"""
-			###### format :      [[[x1, x2], rcount, [x3, x4], rcount]]
+			###### format :      [[x1, x2], rcount, [x3, x4], rcount]]
 			l1 = [image[int(x), int(y)] for x, y, z, in iter1]
+
+			for i in range(len(l1)):
+				if l1[i]!=1:
+					l1 = l1[i:]
+					break;
+
+			while l1[-1]==1:
+				l1.pop()
+
 			l2 = [image[int(x), int(y)] for x, y, z, in iter2]
-			l1dash = [l1[i]-l1[i+1] for i in range(len(l1)-1)]
-			print(l1)
-			print(l1dash)
+
+			for i in range(len(l2)):
+				if l2[i]!=1:
+					l2 = l2[i:]
+					break;
+
+			while l2[-1]==1:
+				l2.pop()
+
+			l1_ = [l1[i].astype(int)-l1[i+1].astype(int) for i in range(len(l1)-1)]
+			l2_ = [l2[i].astype(int) - l2[i+1].astype(int) for i in range(len(l2)-1)]
+			l1_c = 0
+			l2_c = 0
+
+			trail = True
+			sum = 0
+			for i in l1_:
+				sum = sum + i
+				if sum == 0 and trail == False:
+					l1_c = l1_c + 1
+					trail = True
+				elif(sum !=0 ):
+					trail = False
+
+			trail = True
+			sum = 0
+			for i in l2_:
+				sum = sum + i
+				if sum == 0 and trail == False:
+					l2_c = l2_c + 1
+					trail = True
+				elif(sum !=0 ):
+					trail = False
+			
+			print(l1_c, l2_c)
+			print(l1_)
+			print(l2_)
+			to_add = [p1,l1_c, p2, l2_c]
+			ridgecount.append(to_add)
 			cv2.imwrite("thinnedimage0.jpg", mask*255)
 			break
+		print ridgecount
 

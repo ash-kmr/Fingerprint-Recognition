@@ -69,6 +69,6 @@ def createLineIterator(P1, P2, img):
 	itbuffer = itbuffer[(colX >= 0) & (colY >=0) & (colX<imageW) & (colY<imageH)]
 
 	 #Get intensities from img ndarray
-	itbuffer[:,2] = img[itbuffer[:,1].astype(np.uint),itbuffer[:,0].astype(np.uint)]
+	itbuffer[:,2] = img[itbuffer[:,1].astype(np.int),itbuffer[:,0].astype(np.int)]
 
 	return itbuffer
