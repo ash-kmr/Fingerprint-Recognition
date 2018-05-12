@@ -4,6 +4,9 @@ import cv2
 import copy
 from helper import segment
 from rotation import correctrotation, rotate
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
+from lineimitator import createLineIterator
 
 class ZhangSuen:
 	def __init__(self, image):
@@ -42,7 +45,7 @@ class ZhangSuen:
 		weave.inline(thin, ["I", "iter", "M", "a", "b"])
 		return np.multiply(I,M)
 	def performThinning(self):
-		print(self.image.shape)
+		#print(self.image.shape)
 		while True:
 			prev = self.image.copy()
 			self.image = self.step(1)
@@ -50,7 +53,7 @@ class ZhangSuen:
 			diff = np.absolute(self.image - prev).sum()
 			if diff == 0:
 				break
-		print(self.image.shape)
+		#print(self.image.shape)
 		return self.image
 
 	def extractminutiae(self, image):
@@ -65,35 +68,38 @@ class ZhangSuen:
 				CN = CN/2
 				#print(CN)
 				if image[i][j] == 1:
-					if CN == 1 or CN == 3:
-						coords.append((i, j))
+					if CN == 1:
+						coords.append((i, j, 1))
+						mask[i, j] = 1
+					if CN == 3:
+						coords.append((i, j, 3))
 						mask[i, j] = 1
 		return coords, mask
 
 	def remove_minutiae(self, coords, image):
-		print(image.shape)
+		#print(image.shape)
 		image, segmentfilter = segment(image)
 		mask = np.zeros(image.shape)
 		finalcoords = []
-		for i, j in coords:
+		for i, j, t in coords:
 			if i > 6 and i < image.shape[0] - 7 and j > 6 and j < image.shape[1] - 7:
 				block = segmentfilter[i-5:i+6, j-5:j+6]
-				print(block.sum())
+				#print(block.sum())
 				if block.sum() == 121:
 					#mask[i, j] = 1
-					finalcoords.append((i, j))
+					finalcoords.append((i, j, t))
 
 		fincoords = []
-		for i, j in finalcoords:
+		for i, j, t in finalcoords:
 			count = 0
-			for x, y in finalcoords:
+			for x, y, t2 in finalcoords:
 				if x != i or y != j:
 					if x < i+6 and x > i-6:
 						if y < j+6 and y > j-6:
 							count = 1
 							break
 			if count == 1: continue
-			fincoords.append((i, j))
+			fincoords.append((i, j, t))
 			mask[i, j] = 1
 
 		cv2.imwrite("minwithmask.jpg", mask*255)
@@ -105,9 +111,23 @@ class ZhangSuen:
 		angle, r, c = correctrotation(image)
 		angle = angle*np.pi/180
 		rotatedcoords = []
-		for point in coords:
-			rotatedcoords.append(rotate([r/2, c/2], point, angle))
-		print rotatedcoords
-		for point in rotatedcoords:
-			mask[int(round(point[0])), int(round(point[1]))] = 1
+		for x, y, t in coords:
+			xd, yd = rotate([r/2, c/2], [x, y], angle)
+			rotatedcoords.append((xd, yd, t))
+		#print rotatedcoords
+		for x, y, t in rotatedcoords:
+			mask[int(round(x)), int(round(y))] = 1
 		return rotatedcoords, angle, mask
+
+	def myfunction(self, rcoords, image):
+		coords = np.array([[i, j] for i, j, k in rcoords])
+		nbrs = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(coords)
+		distances, indices = nbrs.kneighbors(coords)
+		ridgecount = []
+		for i in range(len(coords)):
+			p1, p2 = np.array(coords[indices[i][1]]), np.array(coords[indices[i][2]])
+			r = np.array(coords[i])
+			iter1 = createLineIterator(r, p1, image)
+			print(iter1)
+			break
+

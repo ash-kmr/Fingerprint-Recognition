@@ -210,7 +210,7 @@ def block_freq(block, angle):
 	if len(peaks) > 1:
 		f = (peaks[-1] - peaks[0])/(len(peaks)-1)
 		if f>=5 and f<=15:
-			freq = 1/f
+			freq = 1.0/f
 
 	return freq
 
