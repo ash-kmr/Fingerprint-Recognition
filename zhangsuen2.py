@@ -68,6 +68,14 @@ class ZhangSuen:
 				CN = CN/2
 				#print(CN)
 				if image[i][j] == 1:
+					x_prev = np.sum(image[:i-1,j])
+					x_aft = np.sum(image[i+1:,j])
+					y_prev = np.sum(image[i,:j-1])
+					y_aft = np.sum(image[i,j+1:])
+
+					if x_prev == 0 or x_aft == 0 or y_aft == 0 or y_prev == 0:
+						continue
+
 					if CN == 1:
 						coords.append((i, j, 1))
 						mask[i, j] = 1

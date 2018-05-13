@@ -29,7 +29,7 @@ def segment(im,w=16,thresh=0.1):
 	
 	padded_img = np.zeros((w*xblocks,w*yblocks+1));
 	stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
-	print(cols)
+	# print(cols)
 	padded_img = im;
 	
 	for x in range(xblocks):
