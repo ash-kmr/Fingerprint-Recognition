@@ -81,13 +81,13 @@ class FeaturePolar:
 		pk = self.current.point
 		diff_kb = pk-pb
 		self.rkb = helper.dki(pb,pk)
-		self.fikb = helper.dfi(np.arctan2(diff_ki[1],diff_ki[0]),self.base.theta)
+		self.fikb = helper.dfi(np.arctan2(diff_kb[1],diff_kb[0]),self.base.theta)
 		self.phikb = helper.dfi(self.current.theta,self.base.theta)
 
-		return (self.rkb,
+		return np.array((self.rkb,
 				self.fikb,
 				self.phikb
-			)
+			))
 
 
  

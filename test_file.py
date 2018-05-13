@@ -5,7 +5,7 @@ from preprocess import preprocess
 import features
 import helper
 from rotation import correctrotation
-
+import constants as const
 
 def get_most_similar(fv1,fv2):
 
@@ -21,6 +21,39 @@ def get_most_similar(fv1,fv2):
 				s = si
 
 	return x,y,s
+
+def match_level(pv1,pv2, fv1, fv2):
+
+	ml = np.zeros((len(pv1),len(pv2)))
+
+	for i in range((len(pv1))):
+		for j in range((len(pv2))):
+			if np.all(np.abs(pv1[i]-pv2[j]) > const.BG):
+				continue
+
+			ml[i,j] = 0.5 + 0.5*helper.similarity(fv1[i], fv2[j])
+			
+
+
+	ml_prime = np.zeros((len(pv1),len(pv2)))
+
+	for i,row in enumerate(ml):
+		j = np.argmax(row)
+		ml_prime[i,j] = row[j]
+
+	ml = ml_prime
+	ml_prime = np.zeros((len(pv1),len(pv2)))
+
+	for j,col in enumerate(ml.T):
+		i = np.argmax(col)
+		ml_prime[i,j] = col[i]
+
+	# print(ml_prime)
+
+	print(ml_prime.sum()/max(len(pv1),len(pv2)))
+
+
+
 
 
 
@@ -68,8 +101,8 @@ class MyTest:
 		coords, mask = z.extractminutiae(img)
 		cv2.imwrite("minu.jpg", mask*255 )
 		fincoords = z.remove_minutiae(coords, cv2.imread("1.jpg", 0))
-		rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("1.jpg", 0))
-		cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
+		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("1.jpg", 0))
+		# cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)
 		feature_vectors = features.get_features(fincoords,vector,orientations)
 
@@ -110,8 +143,8 @@ class MyTest:
 		coords, mask = z.extractminutiae(img)
 		cv2.imwrite("minu2.jpg", mask*255 )
 		fincoords = z.remove_minutiae(coords, cv2.imread("2.jpg", 0))
-		rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("2.jpg", 0))
-		cv2.imwrite("minutiaeextracted2.jpg", (maskedimage)*255)
+		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("2.jpg", 0))
+		# cv2.imwrite("minutiaeextracted2.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)
 		feature_vectors = features.get_features(fincoords,vector,orientations)
 

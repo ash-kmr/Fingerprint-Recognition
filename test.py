@@ -5,10 +5,11 @@ from preprocess import preprocess
 import features
 import helper
 
-from test_file import MyTest, get_most_similar
+from test_file import MyTest, get_most_similar, match_level
 # image = cv2.imread("enh.jpg", 0)
 
 image = cv2.imread("102_2.jpg",0)
+img2 = cv2.imread("101_2.tif",0)
 # image, m, orientations = preprocess(image)
 
 # for i in range(image.shape[0]):
@@ -36,7 +37,7 @@ image = cv2.imread("102_2.jpg",0)
 # feature_vectors_2 = features.get_features(rotatecoords,vecto2,orientations)
 # # print(feature_vectors)
 
-test1 = MyTest(image, image)
+test1 = MyTest(image, img2)
 
 fv1,fo1 = test1.original_stuff()
 fv2,fo2 = test1.rotated_stuff()
@@ -45,4 +46,14 @@ fv2,fo2 = test1.rotated_stuff()
 # print("B",fv2)
 # print(helper.similarity(fv1[0], fv2[0]))
 
-print(get_most_similar(fv1,fv2))
+sl = get_most_similar(fv1,fv2)
+
+b1 = sl[0]
+b2 = sl[1]
+
+pv1, po1 = test1.convert_to_polar(fo1,b1)
+pv2, po2 = test1.convert_to_polar(fo2,b2)
+
+match_level(pv1,pv2,fv1,fv2)
+
+
