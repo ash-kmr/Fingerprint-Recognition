@@ -3,6 +3,7 @@ from zhangsuen2 import ZhangSuen
 import numpy as np
 from preprocess import preprocess
 import features
+import helper
 # image = cv2.imread("enh.jpg", 0)
 
 image = cv2.imread("102_2.jpg",0)
@@ -28,4 +29,6 @@ cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
 vector = z.get_ridge_count(fincoords, image)
 
 feature_vectors = features.get_features(fincoords,vector,orientations)
-print(feature_vectors)
+# print(feature_vectors)
+
+print(helper.similarity(feature_vectors[0], feature_vectors[0]))

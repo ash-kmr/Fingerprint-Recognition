@@ -3,6 +3,7 @@ import numpy as np
 import scipy.ndimage as ndimage
 import scipy.signal as signal
 import cv2
+import constants as const
 
 
 def standard_normalization(image):
@@ -280,6 +281,24 @@ def dfi(t1,t2):
 
 	elif (diff>np.pi):
 		return 2*np.pi - diff
+
+
+def similarity(Fl,Ft):
+
+	W = const.W
+	Fl = np.array(Fl)
+	Ft = np.array(Ft)
+
+	diff = np.abs(Fl-Ft)
+
+	dot_product = W.dot(diff.T)
+	# print(const.bl)
+
+	if dot_product > const.bl:
+		return 0 
+
+	else:
+		return ((const.bl - dot_product)/const.bl)
 
 
 
