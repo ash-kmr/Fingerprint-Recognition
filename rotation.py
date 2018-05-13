@@ -19,8 +19,11 @@ def correctrotation(image):
 	print mat
 	print num
 	print den
-	if(mat[0][1] < mat[1][1]): return angle-90, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
-	else: return 90-angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
+	if angle < 0: angle = 90+angle
+	else: angle = angle-90
+	return angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
+	#if(mat[0][1] < mat[1][1]): return angle-90, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
+	#else: return 90-angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 
 
 def rotate(origin, point, angle):
@@ -34,15 +37,3 @@ def rotate(origin, point, angle):
     qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
     return qx, qy
 
-
-
-# test
-img = cv2.imread("102_2.jpg", 0)
-img = 255 - img
-rows, cols = img.shape
-M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
-dst = cv2.warpAffine(img,M,(cols,rows))
-dst = 255 - dst
-cv2.imwrite("rotated.jpg", dst)
-angle = correctrotation(dst)
-print angle

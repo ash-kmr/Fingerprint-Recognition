@@ -6,6 +6,7 @@ import features
 import helper
 from rotation import correctrotation
 import constants as const
+from utils import shiftcorrection
 
 def get_most_similar(fv1,fv2):
 
@@ -61,14 +62,15 @@ class MyTest:
 
 	def __init__(self, img1, img2):
 
-		self.image = img1
+		self.image = img1.copy()
 
 		#img2 = 255 - img2
-		rows, cols = img2.shape
+		#rows, cols = img2.shape
 		#M = cv2.getRotationMatrix2D((cols/2,rows/2),37,1)
 		#dst = cv2.warpAffine(img2,M,(cols,rows))
 		#dst = 255 - dst
-		self.rotated = img2
+		#self.rotated = dst.copy()
+		self.rotated = img2.copy()
 		if self.rotated.all() == self.image.all(): print "PERFECT MATCH"
 		self.checker1 = 0
 		self.checker2 = 0
@@ -77,8 +79,9 @@ class MyTest:
 	def original_stuff(self):
 
 		img2 = self.image.copy()
+		img2 = shiftcorrection(img2).copy()
+		cv2.imwrite("shifted1.jpg", img2)
 		angle,xc,yc = correctrotation(img2)
-
 		img2 = 255 - img2
 		self.checker1 = img2.copy()
 		rows, cols = img2.shape
@@ -120,6 +123,8 @@ class MyTest:
 		#cv2.imwrite("rot.jpg", self.rotated)
 		#img2 = cv2.imread("rot.jpg", 0)
 		img2 = self.rotated.copy()
+		img2 = shiftcorrection(img2).copy()
+		cv2.imwrite("shifted2.jpg", img2)
 		angle,xc,yc = correctrotation(img2)
 		print("rotation angle")
 		print angle

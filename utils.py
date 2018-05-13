@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage as ndimage
 import scipy.signal as signal
+import cv2
 
 def showImage(image, label, vmin=0.0, vmax=1.0):
     plt.figure().suptitle(label)
@@ -398,3 +399,30 @@ def estimateFrequencies(image, orientations, w=16):
 
     return frequencies
 
+def shiftcorrection(image):
+    """
+    function for correcting the placement of a fingerprint in an image.
+
+    Takes an image as input and returns the image in which fingerprint 
+    is shifted to the center.
+    """
+    img = image.copy()
+    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if img[i, j] < 100:
+                if i > xmax : xmax = i
+                if i < xmin : xmin = i
+                if j > ymax : ymax = j
+                if j < ymin : ymin = j
+
+    rows,cols = img.shape
+    xtrans = (img.shape[0]-xmax-xmin)/2
+    ytrans = (img.shape[1]-ymax-ymin)/2
+    print("translation")
+    print(xtrans, ytrans)
+    M = np.float32([[1,0,ytrans],[0,1,xtrans]])
+    dst = cv2.warpAffine(255-img.copy(),M,(cols,rows))
+    dst = 255-dst
+    #cv2.imwrite("shifted.jpg", dst)
+    return dst
