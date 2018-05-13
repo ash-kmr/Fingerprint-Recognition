@@ -16,7 +16,9 @@ def correctrotation(image):
 	num = abs(mat[0][0] - mat[1][0])
 	den = abs(mat[0][1] - mat[1][1])
 	angle = np.arctan(num/den)*180/np.pi
-
+	print mat
+	print num
+	print den
 	if(mat[0][1] < mat[1][1]): return angle-90, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 	else: return 90-angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 

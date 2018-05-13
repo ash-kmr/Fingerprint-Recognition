@@ -69,23 +69,29 @@ class MyTest:
 		#dst = cv2.warpAffine(img2,M,(cols,rows))
 		#dst = 255 - dst
 		self.rotated = img2
+		if self.rotated.all() == self.image.all(): print "PERFECT MATCH"
+		self.checker1 = 0
+		self.checker2 = 0
 		#self.rotated = dst
 
 	def original_stuff(self):
 
-		img2 = self.image
+		img2 = self.image.copy()
 		angle,xc,yc = correctrotation(img2)
 
 		img2 = 255 - img2
+		self.checker1 = img2.copy()
 		rows, cols = img2.shape
-		M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
+		M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
 		dst = cv2.warpAffine(img2,M,(cols,rows))
 		dst = 255 - dst
-		self.image = dst
+		imgd = dst.copy()
+		print("original angle")
+		print angle
 
-		cv2.imwrite("1.jpg", self.image)
+		cv2.imwrite("1.jpg", imgd)
 
-		image, m, orientations = preprocess(self.image)
+		image, m, orientations = preprocess(imgd)
 		for i in range(image.shape[0]):
 			for j in range(image.shape[1]):
 				if image[i][j] > 50: image[i][j] = 1
@@ -111,23 +117,24 @@ class MyTest:
 
 	def rotated_stuff(self):
 
-		cv2.imwrite("rot.jpg", self.rotated)
-		img2 = cv2.imread("rot.jpg", 0)
+		#cv2.imwrite("rot.jpg", self.rotated)
+		#img2 = cv2.imread("rot.jpg", 0)
+		img2 = self.rotated.copy()
 		angle,xc,yc = correctrotation(img2)
-
-		if angle<0:
-			angle = -angle
-
+		print("rotation angle")
+		print angle
+		if img2.all() == self.image.all() : "INTER PERFECTMATCH"
 		img2 = 255 - img2
+		if img2.all() == self.checker1.all() : "PERFECT MATCH AGAIN"
 		rows, cols = img2.shape
-		M = cv2.getRotationMatrix2D((cols/2,rows/2),-angle,1)
+		M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
 		dst = cv2.warpAffine(img2,M,(cols,rows))
 		dst = 255 - dst
-		self.rotated = dst
+		rotd = dst.copy()
 
 
-		cv2.imwrite("2.jpg", self.rotated)
-		image, m, orientations = preprocess(self.rotated)
+		cv2.imwrite("2.jpg", rotd)
+		image, m, orientations = preprocess(rotd)
 		for i in range(image.shape[0]):
 			for j in range(image.shape[1]):
 				if image[i][j] > 50: image[i][j] = 1
