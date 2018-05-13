@@ -4,31 +4,45 @@ import numpy as np
 from preprocess import preprocess
 import features
 import helper
+
+from test_file import MyTest, get_most_similar
 # image = cv2.imread("enh.jpg", 0)
 
 image = cv2.imread("102_2.jpg",0)
-image, m, orientations = preprocess(image)
+# image, m, orientations = preprocess(image)
 
-for i in range(image.shape[0]):
-	for j in range(image.shape[1]):
-		if image[i][j] > 50: image[i][j] = 1
-		else: image[i][j] = 0
-print("done")
-cop = image.copy()
-#cv2.imwrite("intermediate.jpg", image*255)
-z = ZhangSuen(image)
-img = z.performThinning()
-thinned = img.copy()
-cv2.imwrite("thinnedimage.jpg", (1-img)*255)
-print "dome"
-coords, mask = z.extractminutiae(img)
-cv2.imwrite("minu.jpg", mask*255 )
-fincoords = z.remove_minutiae(coords, cv2.imread("102_2.jpg", 0))
-rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("102_2.jpg", 0))
-cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
-vector = z.get_ridge_count(fincoords, image)
+# for i in range(image.shape[0]):
+# 	for j in range(image.shape[1]):
+# 		if image[i][j] > 50: image[i][j] = 1
+# 		else: image[i][j] = 0
+# print("done")
+# cop = image.copy()
+# #cv2.imwrite("intermediate.jpg", image*255)
+# z = ZhangSuen(image)
+# img = z.performThinning()
+# thinned = img.copy()
+# cv2.imwrite("thinnedimage.jpg", (1-img)*255)
+# print "dome"
+# coords, mask = z.extractminutiae(img)
+# cv2.imwrite("minu.jpg", mask*255 )
+# fincoords = z.remove_minutiae(coords, cv2.imread("102_2.jpg", 0))
+# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("102_2.jpg", 0))
+# cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
+# vector = z.get_ridge_count(fincoords, image)
+# vecto2 = z.get_ridge_count(rotatecoords, image)
 
-feature_vectors = features.get_features(fincoords,vector,orientations)
-# print(feature_vectors)
 
-print(helper.similarity(feature_vectors[0], feature_vectors[0]))
+# feature_vectors = features.get_features(fincoords,vector,orientations)
+# feature_vectors_2 = features.get_features(rotatecoords,vecto2,orientations)
+# # print(feature_vectors)
+
+test1 = MyTest(image, image)
+
+fv1,fo1 = test1.original_stuff()
+fv2,fo2 = test1.rotated_stuff()
+
+# print("A",fv1)
+# print("B",fv2)
+# print(helper.similarity(fv1[0], fv2[0]))
+
+print(get_most_similar(fv1,fv2))

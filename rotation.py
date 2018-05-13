@@ -10,12 +10,14 @@ def correctrotation(image):
 	"""
 	points = [[i, j, image[i, j]] for i in range(image.shape[0]) for j in range(image.shape[1]) if image[i][j] < 60]
 	points = np.array(points)
+
 	kmeans = KMeans(n_clusters = 2, random_state = 3).fit(points)
 	mat = kmeans.cluster_centers_
 	num = abs(mat[0][0] - mat[1][0])
 	den = abs(mat[0][1] - mat[1][1])
 	angle = np.arctan(num/den)*180/np.pi
-	if(mat[0][1] < mat[1][1]): return angle-90
+
+	if(mat[0][1] < mat[1][1]): return angle-90, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 	else: return 90-angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 
 

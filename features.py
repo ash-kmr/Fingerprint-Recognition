@@ -10,19 +10,14 @@ def get_features(fincoords, vector, orientations):
 	"""
 
 	features = []
-
+	feature_obj = []
 	for i,point in enumerate(fincoords):
-
 		feature = FeatureBase(np.array([point[0], point[1]]), point[2], orientations)
 		vec = feature.make_feature_vector(vector[i])
 		features.append(vec)
+		feature_obj.append(feature)
 
-	return features
-
-
-
-
-
+	return features, feature_obj
 
 class FeatureBase:
 	"""
@@ -71,6 +66,29 @@ class FeatureBase:
 				self.typei,
 				self.typej
 			)
+
+
+class FeaturePolar:
+
+	def __init__(self,current,base):
+
+		self.current = current
+		self.base = base
+
+	def convert(self):
+
+		pb = self.base.point
+		pk = self.current.point
+		diff_kb = pk-pb
+		self.rkb = helper.dki(pb,pk)
+		self.fikb = helper.dfi(np.arctan2(diff_ki[1],diff_ki[0]),self.base.theta)
+		self.phikb = helper.dfi(self.current.theta,self.base.theta)
+
+		return (self.rkb,
+				self.fikb,
+				self.phikb
+			)
+
 
  
 
