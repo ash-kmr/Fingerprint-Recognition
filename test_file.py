@@ -63,12 +63,13 @@ class MyTest:
 
 		self.image = img1
 
-		img2 = 255 - img2
+		#img2 = 255 - img2
 		rows, cols = img2.shape
-		M = cv2.getRotationMatrix2D((cols/2,rows/2),37,1)
-		dst = cv2.warpAffine(img2,M,(cols,rows))
-		dst = 255 - dst
-		self.rotated = dst
+		#M = cv2.getRotationMatrix2D((cols/2,rows/2),37,1)
+		#dst = cv2.warpAffine(img2,M,(cols,rows))
+		#dst = 255 - dst
+		self.rotated = img2
+		#self.rotated = dst
 
 	def original_stuff(self):
 

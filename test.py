@@ -8,8 +8,8 @@ import helper
 from test_file import MyTest, get_most_similar, match_level
 # image = cv2.imread("enh.jpg", 0)
 
-image = cv2.imread("102_2.jpg",0)
-img2 = cv2.imread("101_2.tif",0)
+image = cv2.imread("first/101_2.tif",0)
+img2 = cv2.imread("first/101_2.tif",0)
 # image, m, orientations = preprocess(image)
 
 # for i in range(image.shape[0]):
