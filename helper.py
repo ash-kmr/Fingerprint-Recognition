@@ -17,36 +17,36 @@ def standard_normalization(image):
 	return image
 
 def segment(im,w=16,thresh=0.1):
-    
-    rows,cols = im.shape;    
-    print(im.shape)
-    im = standard_normalization(im);    # normalise to get zero mean and unit standard deviation
-    
-    print(im.shape)
-    new_rows, new_cols = int(w*np.ceil(rows/w)), int(w*np.ceil(cols/w)) 
-    xblocks, yblocks = new_rows//w, new_cols//w
-    
-    padded_img = np.zeros((w*xblocks,w*yblocks+1));
-    stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
-    print(cols)
-    padded_img = im;
-    
-    for x in range(xblocks):
-        for y in range(yblocks):
-            block = padded_img[x*w:(x+1)*w, y*w:(y+1)*w];
-            stddevim[x*w:(x+1)*w, y*w:(y+1)*w] = np.std(block)
-    
-    stddevim = stddevim[0:rows, 0:cols]
-                    
-    mask = stddevim > thresh;
-    
-    mean_val = np.mean(im[mask]);
-    
-    std_val = np.std(im[mask]);
-    
-    normim = (im - mean_val)/(std_val);
-    
-    return(normim,mask)
+	
+	rows,cols = im.shape;    
+	print(im.shape)
+	im = standard_normalization(im);    # normalise to get zero mean and unit standard deviation
+	
+	print(im.shape)
+	new_rows, new_cols = int(w*np.ceil(rows/w)), int(w*np.ceil(cols/w)) 
+	xblocks, yblocks = new_rows//w, new_cols//w
+	
+	padded_img = np.zeros((w*xblocks,w*yblocks+1));
+	stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
+	print(cols)
+	padded_img = im;
+	
+	for x in range(xblocks):
+		for y in range(yblocks):
+			block = padded_img[x*w:(x+1)*w, y*w:(y+1)*w];
+			stddevim[x*w:(x+1)*w, y*w:(y+1)*w] = np.std(block)
+	
+	stddevim = stddevim[0:rows, 0:cols]
+					
+	mask = stddevim > thresh;
+	
+	mean_val = np.mean(im[mask]);
+	
+	std_val = np.std(im[mask]);
+	
+	normim = (im - mean_val)/(std_val);
+	
+	return(normim,mask)
 
 def normalize(image):
 	"""
@@ -243,25 +243,44 @@ def getFrequencies(image, orientations, w=16):
 	for x in range(xblocks):
 		for y in range(yblocks):
 			surrounding = F[x:x+3, y:y+3]
-			surrounding = surrounding[np.where(surrounding > 0.0)]	
+			surrounding = surrounding[np.where(surrounding > 0.0)]  
 			if surrounding.size == 0:
 				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = 1
-			else:	
+			else:   
 				frequencies[x*w:(x+1)*w, y*w:(y+1)*w] = np.median(surrounding)
 			
 	return frequencies
 
 def binarize(image, w=16):
-    
-    image = np.copy(image)
-    height, width = image.shape
-    for y in range(0, height, w):
-        for x in range(0, width, w):
-            block = image[y:y+w, x:x+w]
-            threshold = np.average(block)
-            image[y:y+w, x:x+w] = np.where(block >= threshold, 1.0, 0.0)
+	
+	image = np.copy(image)
+	height, width = image.shape
+	for y in range(0, height, w):
+		for x in range(0, width, w):
+			block = image[y:y+w, x:x+w]
+			threshold = np.average(block)
+			image[y:y+w, x:x+w] = np.where(block >= threshold, 1.0, 0.0)
 
-    return image
+	return image
+
+
+def dki(p1,p2):
+	""" Returns the euclidian distance """
+	return np.sqrt(np.sum(p1-p2)**2)
+
+def dfi(t1,t2):
+
+	diff = t1-t2
+
+	if diff>(-np.pi) and diff <= np.pi:
+		return diff
+
+	elif (diff<=(-np.pi)):
+		return 2*np.pi + diff
+
+	elif (diff>np.pi):
+		return 2*np.pi - diff
+
 
 
 

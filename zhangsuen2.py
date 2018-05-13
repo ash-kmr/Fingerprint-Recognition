@@ -119,7 +119,7 @@ class ZhangSuen:
 			mask[int(round(x)), int(round(y))] = 1
 		return rotatedcoords, angle, mask
 
-	def myfunction(self, rcoords, image):
+	def get_ridge_count(self, rcoords, image):
 		mask = np.zeros(image.shape)
 		coords = np.array([[int(i), int(j)] for i, j, k in rcoords])
 		nbrs = NearestNeighbors(n_neighbors=3, algorithm='ball_tree').fit(coords)
@@ -127,6 +127,7 @@ class ZhangSuen:
 		ridgecount = []
 		for i in range(len(coords)):
 			p1, p2 = np.array(coords[indices[i][1]]), np.array(coords[indices[i][2]])
+			p1_type, p2_type = rcoords[indices[i][1]][2], rcoords[indices[i][2]][2]
 			r = np.array(coords[i])
 			iter1 = createLineIterator(r, p1, image)
 			iter2 = createLineIterator(r, p2, image)
@@ -142,9 +143,9 @@ class ZhangSuen:
 			for i in range(len(l1)):
 				if l1[i]!=1:
 					l1 = l1[i:]
-					break;
+					break
 
-			while l1[-1]==1:
+			while l1 and l1[-1]==1:
 				l1.pop()
 
 			l2 = [image[int(x), int(y)] for x, y, z, in iter2]
@@ -152,9 +153,9 @@ class ZhangSuen:
 			for i in range(len(l2)):
 				if l2[i]!=1:
 					l2 = l2[i:]
-					break;
+					break
 
-			while l2[-1]==1:
+			while l2 and l2[-1]==1:
 				l2.pop()
 
 			l1_ = [l1[i].astype(int)-l1[i+1].astype(int) for i in range(len(l1)-1)]
@@ -182,12 +183,14 @@ class ZhangSuen:
 				elif(sum !=0 ):
 					trail = False
 			
-			print(l1_c, l2_c)
-			print(l1_)
-			print(l2_)
-			to_add = [p1,l1_c, p2, l2_c]
+			# print(l1_c, l2_c)
+			# print(l1_)
+			# print(l2_)
+			to_add = [p1, p1_type, l1_c, p2, p2_type, l2_c]
 			ridgecount.append(to_add)
 			cv2.imwrite("thinnedimage0.jpg", mask*255)
-			break
-		print ridgecount
+			# break
+		# print ridgecount
+
+		return ridgecount
 

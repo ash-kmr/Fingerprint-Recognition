@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit, jitclass
+# from numba import jit, jitclass
 
 
 class ZhangSuen:
