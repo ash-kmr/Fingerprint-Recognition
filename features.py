@@ -42,11 +42,11 @@ class FeatureBase:
 		diff_ki = (self.point - ki)
 		diff_kj = (self.point - kj)
 
-		self.fiki = helper.dfi(np.arctan2(diff_ki[1],diff_ki[0]),self.theta)
+		self.fiki = helper.dfi(np.arctan2(diff_ki[1],diff_ki[0]),self.theta) 
 		self.fikj = helper.dfi(np.arctan2(diff_kj[1],diff_kj[0]),self.theta)
 
-		self.phiki = helper.dfi(self.theta, itheta)
-		self.phikj = helper.dfi(self.theta, jtheta)
+		self.phiki = helper.dfi(itheta, self.theta)
+		self.phikj = helper.dfi(jtheta, self.theta)
 
 		self.nki = ridgecount[2]
 		self.nkj = ridgecount[5]

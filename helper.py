@@ -146,7 +146,7 @@ def getOrientations(image, w=16):
 			orien[i, j] = np.arctan2(numerator, denominator)/2
 
 	# Rotate the orientations by 90 degrees
-	orien = (orien + np.pi/2) % np.pi
+	orien = (orien + np.pi/2)
 
 	# Smooth the orientation field
 	orientations = np.full(image.shape, -1.0)
@@ -268,7 +268,8 @@ def binarize(image, w=16):
 
 def dki(p1,p2):
 	""" Returns the euclidian distance """
-	return np.sqrt(np.sum(p1-p2)**2)
+	# return np.sqrt(np.sum(p1-p2)**2)
+	return (np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2))
 
 def dfi(t1,t2):
 
@@ -299,7 +300,7 @@ def similarity(Fl,Ft):
 		return 0 
 
 	else:
-		return ((const.bl - dot_product)/const.bl)
+		return (np.abs(const.bl - dot_product)/const.bl)
 
 
 
@@ -345,6 +346,33 @@ def cropfingerprint(image):
                 if j < ymin : ymin = j
 
     return img[xmin:xmax+1, ymin:ymax+1], xmax, xmin, ymax, ymin
+
+
+def find_roi(image, orientations, w=16, wn=20):
+
+	roi = np.zeros((w*wn,w*wn))
+	height, width = image.shape
+	xblocks, yblocks = height // w, width // w
+	xmin,xmax,ymin,ymax = 0,0,0,0
+	for x in range(xblocks-wn):
+		for y in range(yblocks-wn):
+			orientation = orientations[x*w+w//2, y*w+w//2]
+
+			surrounding = orientations[x*w:(x+wn)*w,y*w:(y+wn)*w]
+
+			if surrounding.std() > roi.std():
+				roi = surrounding
+				xmin = x*w
+				xmax = (x+wn)*w
+				ymin = y*w
+				ymax = (y+wn)*w
+
+
+	return roi,xmax,xmin,ymax,ymin
+
+
+
+
 
 
 

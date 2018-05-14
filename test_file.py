@@ -33,26 +33,35 @@ def match_level(pv1,pv2, fv1, fv2):
 			if np.all(np.abs(pv1[i]-pv2[j]) > const.BG):
 				continue
 
-			ml[i,j] = 0.5 + 0.5*helper.similarity(fv1[i], fv2[j])
+			ml[i,j] = 0.5 + (0.5*helper.similarity(fv1[i], fv2[j]))
 			
+	# ml_prime = np.zeros((len(pv1),len(pv2)))
 
+	# for i,row in enumerate(ml):
+	# 	j = np.argmax(row)
+	# 	ml_prime[i,j] = row[j]
 
-	ml_prime = np.zeros((len(pv1),len(pv2)))
+	# ml = ml_prime
+	# ml_prime = np.zeros((len(pv1),len(pv2)))
 
-	for i,row in enumerate(ml):
-		j = np.argmax(row)
-		ml_prime[i,j] = row[j]
-
-	ml = ml_prime
-	ml_prime = np.zeros((len(pv1),len(pv2)))
-
-	for j,col in enumerate(ml.T):
-		i = np.argmax(col)
-		ml_prime[i,j] = col[i]
+	# for j,col in enumerate(ml.T):
+	# 	i = np.argmax(col)
+	# 	ml_prime[i,j] = col[i]
 
 	# print(ml_prime)
+	sum = 0
+	count = 0
+	while ml.any() != 0:
+		ind = np.argmax(ml)
+		x,y = ind//len(pv2), ind%(len(pv2))
+		if ml[x,y] != 0.5: sum = sum + ml[x,y]
+		# sum = sum + ml[x,y]
+		# print(ml[x,y])
+		ml[x] = 0
+		ml[:,y] = 0
+		count = count + 1
 
-	return (ml_prime.sum()/max(len(pv1),len(pv2)))
+	return (sum/count)
 
 
 
@@ -101,11 +110,17 @@ class MyTest:
 				if image[i][j] > 50: image[i][j] = 1
 				else: image[i][j] = 0
 
+
 		# print("done")
-		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
-		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
+		# image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
+		# image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 
 		image, xmax, xmin, ymax, ymin = cropfingerprint(image)
+		orientations = orientations[xmin:xmax+1, ymin:ymax+1]
+
+		# orientations, xmax, xmin, ymax, ymin = helper.find_roi(image,orientations)
+		# image = image[xmin:xmax+1, ymin:ymax+1]
+
 		cv2.imwrite("intermediate-y.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
@@ -148,9 +163,14 @@ class MyTest:
 				else: image[i][j] = 0
 
 		# print("done")
-		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
-		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
+		# image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
+		# image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 		image, xmax, xmin, ymax, ymin = cropfingerprint(image)
+		orientations = orientations[xmin:xmax+1, ymin:ymax+1]
+
+		# orientations, xmax, xmin, ymax, ymin = helper.find_roi(image,orientations)
+		# image = image[xmin:xmax+1, ymin:ymax+1]
+
 		cv2.imwrite("cropped2.jpg",image)
 		cv2.imwrite("intermediate-t.jpg", image*255)
 		z = ZhangSuen(image)
