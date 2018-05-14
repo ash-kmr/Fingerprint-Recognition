@@ -421,8 +421,23 @@ def shiftcorrection(image):
     ytrans = (img.shape[1]-ymax-ymin)/2
     print("translation")
     print(xtrans, ytrans)
+    cv2.imwrite("pretrans.jpg", img)
     M = np.float32([[1,0,ytrans],[0,1,xtrans]])
     dst = cv2.warpAffine(255-img.copy(),M,(cols,rows))
     dst = 255-dst
+    cv2.imwrite("posttrans.jpg", dst)
     #cv2.imwrite("shifted.jpg", dst)
     return dst
+
+def cropfingerprint(image):
+    img = image.copy()
+    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            if img[i, j] == 1:
+                if i > xmax : xmax = i
+                if i < xmin : xmin = i 
+                if j > ymax : ymax = j
+                if j < ymin : ymin = j
+
+    return img[xmin:xmax+1, ymin:ymax+1], xmax, xmin, ymax, ymin

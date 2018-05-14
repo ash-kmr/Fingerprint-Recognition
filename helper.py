@@ -20,15 +20,14 @@ def standard_normalization(image):
 def segment(im,w=16,thresh=0.1):
 	
 	rows,cols = im.shape;    
-	print(im.shape)
 	im = standard_normalization(im);    # normalise to get zero mean and unit standard deviation
 	
-	print(im.shape)
-	new_rows, new_cols = int(w*np.ceil(rows/w)), int(w*np.ceil(cols/w)) 
+	# print(im.shape)
+	new_rows, new_cols = int(w*np.ceil(rows*1.0/w)), int(w*np.ceil(cols*1.0/w)) 
 	xblocks, yblocks = new_rows//w, new_cols//w
 	
-	padded_img = np.zeros((w*xblocks,w*yblocks+1));
-	stddevim = np.zeros((w*xblocks+1,w*yblocks+1));
+	padded_img = np.zeros((w*xblocks,w*yblocks));
+	stddevim = np.zeros((new_rows,new_cols));
 	# print(cols)
 	padded_img = im;
 	
@@ -38,8 +37,10 @@ def segment(im,w=16,thresh=0.1):
 			stddevim[x*w:(x+1)*w, y*w:(y+1)*w] = np.std(block)
 	
 	stddevim = stddevim[0:rows, 0:cols]
-					
-	mask = stddevim > thresh;
+	
+	# print(im.shape)
+	# print(stddevim.shape)
+	mask = stddevim > thresh
 	
 	mean_val = np.mean(im[mask]);
 	
@@ -299,6 +300,51 @@ def similarity(Fl,Ft):
 
 	else:
 		return ((const.bl - dot_product)/const.bl)
+
+
+
+def shiftcorrection(image):
+    """
+    function for correcting the placement of a fingerprint in an image.
+
+    Takes an image as input and returns the image in which fingerprint 
+    is shifted to the center.
+    """
+    img = image.copy()
+    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if img[i, j] < 100:
+                if i > xmax : xmax = i
+                if i < xmin : xmin = i
+                if j > ymax : ymax = j
+                if j < ymin : ymin = j
+
+    rows,cols = img.shape
+    xtrans = (img.shape[0]-xmax-xmin)/2
+    ytrans = (img.shape[1]-ymax-ymin)/2
+    print("translation")
+    print(xtrans, ytrans)
+    cv2.imwrite("pretrans.jpg", img)
+    M = np.float32([[1,0,ytrans],[0,1,xtrans]])
+    dst = cv2.warpAffine(255-img.copy(),M,(cols,rows))
+    dst = 255-dst
+    cv2.imwrite("posttrans.jpg", dst)
+    #cv2.imwrite("shifted.jpg", dst)
+    return dst
+
+def cropfingerprint(image):
+    img = image.copy()
+    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            if img[i, j] == 1:
+                if i > xmax : xmax = i
+                if i < xmin : xmin = i 
+                if j > ymax : ymax = j
+                if j < ymin : ymin = j
+
+    return img[xmin:xmax+1, ymin:ymax+1], xmax, xmin, ymax, ymin
 
 
 

@@ -21,6 +21,12 @@ def correctrotation(image):
 	print den
 	if angle < 0: angle = 90+angle
 	else: angle = angle-90
+	if abs(angle) > 45:
+		if angle > 0:
+			angle = 90-angle
+		elif angle < 0:
+			angle = -(90-abs(angle))
+
 	return angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 	#if(mat[0][1] < mat[1][1]): return angle-90, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2
 	#else: return 90-angle, (mat[0][0]+mat[1][0])/2, (mat[0][1]+mat[1][1])/2

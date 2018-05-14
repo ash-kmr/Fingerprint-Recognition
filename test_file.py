@@ -6,7 +6,7 @@ import features
 import helper
 from rotation import correctrotation
 import constants as const
-from utils import shiftcorrection
+from helper import shiftcorrection, cropfingerprint
 import scipy
 
 def get_most_similar(fv1,fv2):
@@ -80,18 +80,18 @@ class MyTest:
 	def original_stuff(self):
 
 		img2 = self.image.copy()
-		img2 = shiftcorrection(img2).copy()
+		#img2 = shiftcorrection(img2).copy()
 		cv2.imwrite("shifted1.jpg", img2)
-		angle,xc,yc = correctrotation(img2)
-		img2 = 255 - img2
-		self.checker1 = img2.copy()
-		rows, cols = img2.shape
-		M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
-		dst = cv2.warpAffine(img2,M,(cols,rows))
-		dst = 255 - dst
-		imgd = dst.copy()
-		print("original angle")
-		print angle
+		#angle,xc,yc = correctrotation(img2)
+		#img2 = 255 - img2
+		#self.checker1 = img2.copy()
+		#rows, cols = img2.shape
+		#M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
+		#dst = cv2.warpAffine(img2,M,(cols,rows))
+		#dst = 255 - dst
+		imgd = img2.copy()
+		#print("original angle")
+		#print angle
 
 		cv2.imwrite("1.jpg", imgd)
 
@@ -102,19 +102,19 @@ class MyTest:
 				else: image[i][j] = 0
 
 		print("done")
-		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
+		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 
-		cop = image.copy()
+		image, xmax, xmin, ymax, ymin = cropfingerprint(image)
 		cv2.imwrite("intermediate-y.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()
 		cv2.imwrite("thinnedimage.jpg", (1-img)*255)
 		print "dome"
-		coords, mask = z.extractminutiae(img)
+		coords, mask = z.extractminutiae(thinned)
 		cv2.imwrite("minu.jpg", mask*255 )
-		fincoords = z.remove_minutiae(coords, cv2.imread("1.jpg", 0))
+		fincoords = z.remove_minutiae(coords, cv2.imread("1.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
 		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("1.jpg", 0))
 		# cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)
@@ -127,21 +127,19 @@ class MyTest:
 		#cv2.imwrite("rot.jpg", self.rotated)
 		#img2 = cv2.imread("rot.jpg", 0)
 		img2 = self.rotated.copy()
-		img2 = shiftcorrection(img2).copy()
+		#img2 = shiftcorrection(img2).copy()
 		cv2.imwrite("shifted2.jpg", img2)
-		angle,xc,yc = correctrotation(img2)
-		print("rotation angle")
-		print angle
-		if img2.all() == self.image.all() : "INTER PERFECTMATCH"
-		img2 = 255 - img2
-		if img2.all() == self.checker1.all() : "PERFECT MATCH AGAIN"
-		rows, cols = img2.shape
-		M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
-		dst = cv2.warpAffine(img2,M,(cols,rows))
-		dst = 255 - dst
-		rotd = dst.copy()
-
-
+		#angle,xc,yc = correctrotation(img2)
+		#print("rotation angle")
+		#print angle
+		#if img2.all() == self.image.all() : "INTER PERFECTMATCH"
+		#img2 = 255 - img2
+		#if img2.all() == self.checker1.all() : "PERFECT MATCH AGAIN"
+		#rows, cols = img2.shape
+		#M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
+		#dst = cv2.warpAffine(img2,M,(cols,rows))
+		#dst = 255 - dst
+		rotd = img2.copy()
 		cv2.imwrite("2.jpg", rotd)
 		image, m, orientations = preprocess(rotd)
 		for i in range(image.shape[0]):
@@ -150,18 +148,19 @@ class MyTest:
 				else: image[i][j] = 0
 
 		print("done")
-		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
-		cop = image.copy()
+		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
+		image, xmax, xmin, ymax, ymin = cropfingerprint(image)
+		cv2.imwrite("cropped2.jpg",image)
 		cv2.imwrite("intermediate-t.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()
 		cv2.imwrite("thinnedimage2.jpg", (1-img)*255)
 		print "dome"
-		coords, mask = z.extractminutiae(img)
+		coords, mask = z.extractminutiae(thinned)
 		cv2.imwrite("minu2.jpg", mask*255 )
-		fincoords = z.remove_minutiae(coords, cv2.imread("2.jpg", 0))
+		fincoords = z.remove_minutiae(coords, cv2.imread("2.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
 		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("2.jpg", 0))
 		# cv2.imwrite("minutiaeextracted2.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)

@@ -98,12 +98,13 @@ class ZhangSuen:
 					finalcoords.append((i, j, t))
 
 		fincoords = []
+		bada = 8
 		for i, j, t in finalcoords:
 			count = 0
 			for x, y, t2 in finalcoords:
 				if x != i or y != j:
-					if x < i+6 and x > i-6:
-						if y < j+6 and y > j-6:
+					if x < i+bada and x > i-bada:
+						if y < j+bada and y > j-bada:
 							count = 1
 							break
 			if count == 1: continue
