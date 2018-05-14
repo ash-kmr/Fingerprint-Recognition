@@ -7,6 +7,7 @@ import helper
 from rotation import correctrotation
 import constants as const
 from utils import shiftcorrection
+import scipy
 
 def get_most_similar(fv1,fv2):
 
@@ -101,8 +102,11 @@ class MyTest:
 				else: image[i][j] = 0
 
 		print("done")
+		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
+		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
+
 		cop = image.copy()
-		#cv2.imwrite("intermediate.jpg", image*255)
+		cv2.imwrite("intermediate-y.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()
@@ -146,8 +150,10 @@ class MyTest:
 				else: image[i][j] = 0
 
 		print("done")
+		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
+		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
 		cop = image.copy()
-		#cv2.imwrite("intermediate.jpg", image*255)
+		cv2.imwrite("intermediate-t.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()

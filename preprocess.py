@@ -22,7 +22,7 @@ def preprocess(image):
 	freq = frequencies*mask
 
 	# Gabor Filter
-	image = ridge_filter(image, orientations, freq, 0.65, 0.65);  
+	image = ridge_filter(image, orientations, freq, 0.7, 0.7);  
 	image = (image < -3).astype(int)
 
 	return image*255, mask, orientations

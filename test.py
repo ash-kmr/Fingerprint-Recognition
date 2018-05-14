@@ -9,7 +9,7 @@ from test_file import MyTest, get_most_similar, match_level
 # image = cv2.imread("enh.jpg", 0)
 
 image = cv2.imread("DB1_B/103_6.tif",0)
-img2 = cv2.imread("DB1_B/102_7.tif",0)
+img2 = cv2.imread("DB1_B/103_7.tif",0)
 # image, m, orientations = preprocess(image)
 
 # for i in range(image.shape[0]):

@@ -51,8 +51,11 @@ Created on Fri Apr 22 03:15:03 2016
 
 import numpy as np
 import scipy;
+
+
 def ridge_filter(im, orient, freq, kx, ky):
-    angleInc = 3;
+    angleInc = 1;
+
     im = np.double(im);
     rows,cols = im.shape;
     newim = np.zeros((rows,cols));
