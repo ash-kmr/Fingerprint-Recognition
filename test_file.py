@@ -52,7 +52,7 @@ def match_level(pv1,pv2, fv1, fv2):
 
 	# print(ml_prime)
 
-	print(ml_prime.sum()/max(len(pv1),len(pv2)))
+	return (ml_prime.sum()/max(len(pv1),len(pv2)))
 
 
 
@@ -72,7 +72,7 @@ class MyTest:
 		#dst = 255 - dst
 		#self.rotated = dst.copy()
 		self.rotated = img2.copy()
-		if self.rotated.all() == self.image.all(): print "PERFECT MATCH"
+		# if self.rotated.all() == self.image.all(): print "PERFECT MATCH"
 		self.checker1 = 0
 		self.checker2 = 0
 		#self.rotated = dst
@@ -101,7 +101,7 @@ class MyTest:
 				if image[i][j] > 50: image[i][j] = 1
 				else: image[i][j] = 0
 
-		print("done")
+		# print("done")
 		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
 		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 
@@ -111,7 +111,7 @@ class MyTest:
 		img = z.performThinning()
 		thinned = img.copy()
 		cv2.imwrite("thinnedimage.jpg", (1-img)*255)
-		print "dome"
+		# print "dome"
 		coords, mask = z.extractminutiae(thinned)
 		cv2.imwrite("minu.jpg", mask*255 )
 		fincoords = z.remove_minutiae(coords, cv2.imread("1.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
@@ -147,7 +147,7 @@ class MyTest:
 				if image[i][j] > 50: image[i][j] = 1
 				else: image[i][j] = 0
 
-		print("done")
+		# print("done")
 		image = scipy.ndimage.binary_closing(image, structure=np.ones((3,3))).astype(np.int)
 		image = scipy.ndimage.binary_opening(image, structure=np.ones((3,3))).astype(np.int)
 		image, xmax, xmin, ymax, ymin = cropfingerprint(image)
@@ -157,7 +157,7 @@ class MyTest:
 		img = z.performThinning()
 		thinned = img.copy()
 		cv2.imwrite("thinnedimage2.jpg", (1-img)*255)
-		print "dome"
+		# print "dome"
 		coords, mask = z.extractminutiae(thinned)
 		cv2.imwrite("minu2.jpg", mask*255 )
 		fincoords = z.remove_minutiae(coords, cv2.imread("2.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
