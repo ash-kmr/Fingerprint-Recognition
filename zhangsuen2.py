@@ -111,7 +111,7 @@ class ZhangSuen:
 			fincoords.append((i, j, t))
 			mask[i, j] = 1
 
-		cv2.imwrite("minwithmask.jpg", mask*255)
+		# cv2.imwrite("minwithmask.jpg", mask*255)
 		return fincoords
 
 	def rotate_minutiae(self, coords, image):
@@ -197,7 +197,7 @@ class ZhangSuen:
 			# print(l2_)
 			to_add = [p1, p1_type, l1_c, p2, p2_type, l2_c]
 			ridgecount.append(to_add)
-			cv2.imwrite("thinnedimage0.jpg", mask*255)
+			# cv2.imwrite("thinnedimage0.jpg", mask*255)
 			# break
 		# print ridgecount
 

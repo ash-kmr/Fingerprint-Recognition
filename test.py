@@ -5,6 +5,7 @@ from preprocess import preprocess
 import features
 import helper
 import os
+import sys
 
 from test_file import MyTest, get_most_similar, match_level
 # image = cv2.imread("enh.jpg", 0)
@@ -16,8 +17,10 @@ from test_file import MyTest, get_most_similar, match_level
 # for i in images:
 	# for j in images:
 
-image = cv2.imread("DB1_B/102_2.tif",0)
-img2 = cv2.imread("DB1_B/102_3.tif",0)
+# image = cv2.imread("my_db/6_2.jpg",0)
+# img2 = cv2.imread("my_db/6_1.jpg",0)
+image = cv2.imread(sys.argv[1],0)
+img2 = cv2.imread(sys.argv[2],0)
 
 # image = cv2.imread("my_db/6_4.jpg",0)
 # img2 = cv2.imread("my_db/6_1.jpg",0)
@@ -67,6 +70,7 @@ b2 = sl[1]
 pv1, po1 = test1.convert_to_polar(fo1,b1)
 pv2, po2 = test1.convert_to_polar(fo2,b2)
 
-print(match_level(pv1,pv2,fv1,fv2))
+ml = match_level(pv1,pv2,fv1,fv2)
+print(ml, "Matched" if (ml>0.3) else "Not Matched")
 
 

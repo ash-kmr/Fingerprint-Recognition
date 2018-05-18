@@ -9,6 +9,8 @@ import constants as const
 from helper import shiftcorrection, cropfingerprint
 import scipy
 
+dir = "output_images/"
+
 def get_most_similar(fv1,fv2):
 
 	s = 0
@@ -73,15 +75,17 @@ class MyTest:
 	def __init__(self, img1, img2):
 
 		self.image = img1.copy()
-
+		# self.image = scipy.ndimage.median_filter(self.image, size=(3,3))
 		#img2 = 255 - img2
 		#rows, cols = img2.shape
 		#M = cv2.getRotationMatrix2D((cols/2,rows/2),37,1)
 		#dst = cv2.warpAffine(img2,M,(cols,rows))
 		#dst = 255 - dst
 		#self.rotated = dst.copy()
+		# self.rotated = helper.noisy(img2.copy(),"s&p")
 		self.rotated = img2.copy()
 		# if self.rotated.all() == self.image.all(): print "PERFECT MATCH"
+		# self.rotated = scipy.ndimage.median_filter(self.rotated, size=(3,3))
 		self.checker1 = 0
 		self.checker2 = 0
 		#self.rotated = dst
@@ -90,19 +94,19 @@ class MyTest:
 
 		img2 = self.image.copy()
 		#img2 = shiftcorrection(img2).copy()
-		cv2.imwrite("shifted1.jpg", img2)
+		# cv2.imwrite("shifted1.jpg", img2)
 		#angle,xc,yc = correctrotation(img2)
 		#img2 = 255 - img2
 		#self.checker1 = img2.copy()
 		#rows, cols = img2.shape
-		#M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
+		#M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
 		#dst = cv2.warpAffine(img2,M,(cols,rows))
 		#dst = 255 - dst
 		imgd = img2.copy()
 		#print("original angle")
 		#print angle
 
-		cv2.imwrite("1.jpg", imgd)
+		cv2.imwrite(dir + "input.jpg", imgd)
 
 		image, m, orientations = preprocess(imgd)
 		for i in range(image.shape[0]):
@@ -121,15 +125,15 @@ class MyTest:
 		# orientations, xmax, xmin, ymax, ymin = helper.find_roi(image,orientations)
 		# image = image[xmin:xmax+1, ymin:ymax+1]
 
-		cv2.imwrite("intermediate-y.jpg", image*255)
+		cv2.imwrite(dir + "intermediate-input.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()
-		cv2.imwrite("thinnedimage.jpg", (1-img)*255)
+		cv2.imwrite(dir + "thinnedimage-input.jpg", (1-img)*255)
 		# print "dome"
 		coords, mask = z.extractminutiae(thinned)
-		cv2.imwrite("minu.jpg", mask*255 )
-		fincoords = z.remove_minutiae(coords, cv2.imread("1.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
+		cv2.imwrite(dir + "minu-input.jpg", mask*255 )
+		fincoords = z.remove_minutiae(coords, cv2.imread(dir + "input.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
 		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("1.jpg", 0))
 		# cv2.imwrite("minutiaeextracted.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)
@@ -143,7 +147,7 @@ class MyTest:
 		#img2 = cv2.imread("rot.jpg", 0)
 		img2 = self.rotated.copy()
 		#img2 = shiftcorrection(img2).copy()
-		cv2.imwrite("shifted2.jpg", img2)
+		# cv2.imwrite("shifted2.jpg", img2)
 		#angle,xc,yc = correctrotation(img2)
 		#print("rotation angle")
 		#print angle
@@ -151,11 +155,11 @@ class MyTest:
 		#img2 = 255 - img2
 		#if img2.all() == self.checker1.all() : "PERFECT MATCH AGAIN"
 		#rows, cols = img2.shape
-		#M = cv2.getRotationMatrix2D((cols/2,rows/2),0,1)
+		#M = cv2.getRotationMatrix2D((cols/2,rows/2),angle,1)
 		#dst = cv2.warpAffine(img2,M,(cols,rows))
 		#dst = 255 - dst
 		rotd = img2.copy()
-		cv2.imwrite("2.jpg", rotd)
+		cv2.imwrite(dir + "template.jpg", rotd)
 		image, m, orientations = preprocess(rotd)
 		for i in range(image.shape[0]):
 			for j in range(image.shape[1]):
@@ -171,16 +175,15 @@ class MyTest:
 		# orientations, xmax, xmin, ymax, ymin = helper.find_roi(image,orientations)
 		# image = image[xmin:xmax+1, ymin:ymax+1]
 
-		cv2.imwrite("cropped2.jpg",image)
-		cv2.imwrite("intermediate-t.jpg", image*255)
+		cv2.imwrite(dir + "intermediate-template.jpg", image*255)
 		z = ZhangSuen(image)
 		img = z.performThinning()
 		thinned = img.copy()
-		cv2.imwrite("thinnedimage2.jpg", (1-img)*255)
+		cv2.imwrite(dir + "thinnedimage-template.jpg", (1-img)*255)
 		# print "dome"
 		coords, mask = z.extractminutiae(thinned)
-		cv2.imwrite("minu2.jpg", mask*255 )
-		fincoords = z.remove_minutiae(coords, cv2.imread("2.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
+		cv2.imwrite(dir + "minu-template.jpg", mask*255 )
+		fincoords = z.remove_minutiae(coords, cv2.imread(dir + "template.jpg", 0)[xmin:xmax+1, ymin:ymax+1])
 		# rotatecoords, angle, maskedimage = z.rotate_minutiae(fincoords, cv2.imread("2.jpg", 0))
 		# cv2.imwrite("minutiaeextracted2.jpg", (maskedimage)*255)
 		vector = z.get_ridge_count(fincoords, image)

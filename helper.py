@@ -305,47 +305,47 @@ def similarity(Fl,Ft):
 
 
 def shiftcorrection(image):
-    """
-    function for correcting the placement of a fingerprint in an image.
+	"""
+	function for correcting the placement of a fingerprint in an image.
 
-    Takes an image as input and returns the image in which fingerprint 
-    is shifted to the center.
-    """
-    img = image.copy()
-    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            if img[i, j] < 100:
-                if i > xmax : xmax = i
-                if i < xmin : xmin = i
-                if j > ymax : ymax = j
-                if j < ymin : ymin = j
+	Takes an image as input and returns the image in which fingerprint 
+	is shifted to the center.
+	"""
+	img = image.copy()
+	xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+	for i in range(img.shape[0]):
+		for j in range(img.shape[1]):
+			if img[i, j] < 100:
+				if i > xmax : xmax = i
+				if i < xmin : xmin = i
+				if j > ymax : ymax = j
+				if j < ymin : ymin = j
 
-    rows,cols = img.shape
-    xtrans = (img.shape[0]-xmax-xmin)/2
-    ytrans = (img.shape[1]-ymax-ymin)/2
-    print("translation")
-    print(xtrans, ytrans)
-    cv2.imwrite("pretrans.jpg", img)
-    M = np.float32([[1,0,ytrans],[0,1,xtrans]])
-    dst = cv2.warpAffine(255-img.copy(),M,(cols,rows))
-    dst = 255-dst
-    cv2.imwrite("posttrans.jpg", dst)
-    #cv2.imwrite("shifted.jpg", dst)
-    return dst
+	rows,cols = img.shape
+	xtrans = (img.shape[0]-xmax-xmin)/2
+	ytrans = (img.shape[1]-ymax-ymin)/2
+	print("translation")
+	print(xtrans, ytrans)
+	cv2.imwrite("pretrans.jpg", img)
+	M = np.float32([[1,0,ytrans],[0,1,xtrans]])
+	dst = cv2.warpAffine(255-img.copy(),M,(cols,rows))
+	dst = 255-dst
+	cv2.imwrite("posttrans.jpg", dst)
+	#cv2.imwrite("shifted.jpg", dst)
+	return dst
 
 def cropfingerprint(image):
-    img = image.copy()
-    xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
-    for i in range(image.shape[0]):
-        for j in range(image.shape[1]):
-            if img[i, j] == 1:
-                if i > xmax : xmax = i
-                if i < xmin : xmin = i 
-                if j > ymax : ymax = j
-                if j < ymin : ymin = j
+	img = image.copy()
+	xmax, xmin, ymax, ymin = -1, 10000, -1, 10000
+	for i in range(image.shape[0]):
+		for j in range(image.shape[1]):
+			if img[i, j] == 1:
+				if i > xmax : xmax = i
+				if i < xmin : xmin = i 
+				if j > ymax : ymax = j
+				if j < ymin : ymin = j
 
-    return img[xmin:xmax+1, ymin:ymax+1], xmax, xmin, ymax, ymin
+	return img[xmin:xmax+1, ymin:ymax+1], xmax, xmin, ymax, ymin
 
 
 def find_roi(image, orientations, w=16, wn=20):
@@ -369,6 +369,47 @@ def find_roi(image, orientations, w=16, wn=20):
 
 
 	return roi,xmax,xmin,ymax,ymin
+
+def noisy(image,noise_typ):
+	if noise_typ == "gauss":
+		row,col= image.shape
+		mean = 0
+		var = 1
+		sigma = var**0.5
+		gauss = np.random.normal(mean,sigma,(row,col))
+		gauss = gauss.reshape(row,col)
+		noisy = image + gauss
+		return noisy
+	elif noise_typ == "s&p":
+		row,col = image.shape
+		s_vs_p = 0.5
+		amount = 0.004
+		out = np.copy(image)
+		# Salt mode
+		num_salt = np.ceil(amount * image.size * s_vs_p)
+		coords = [np.random.randint(0, i - 1, int(num_salt))
+			  for i in image.shape]
+		out[coords] = 1
+
+		# Pepper mode
+		num_pepper = np.ceil(amount* image.size * (1. - s_vs_p))
+		coords = [np.random.randint(0, i - 1, int(num_pepper))
+			  for i in image.shape]
+		out[coords] = 0
+		return out
+	elif noise_typ == "poisson":
+		vals = len(np.unique(image))
+		vals = 2 ** np.ceil(np.log2(vals))
+		noisy = np.random.poisson(image * vals) / float(vals)
+		return noisy
+	elif noise_typ =="speckle":
+		row,col = image.shape
+		gauss = np.random.randn(row,col)
+		gauss = gauss.reshape(row,col)        
+		noisy = image + image * gauss
+		return noisy
+
+
 
 
 

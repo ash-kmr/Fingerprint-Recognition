@@ -6,7 +6,6 @@ import math
 import matplotlib.pyplot as plt
 import scipy.ndimage as ndimage
 import scipy.signal as signal
-import gabor
 import helper
 from ridge_filter import ridge_filter
 
